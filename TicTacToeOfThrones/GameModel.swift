@@ -21,6 +21,12 @@ enum gameStatus {
     case gameDraw
 }
 
+enum gameState {
+    case gameStateLock
+    case gameStateActive
+    case gameStateOff
+}
+
 class GameModel {
     static let sharedInstance = GameModel()
     private init() {}
@@ -28,10 +34,11 @@ class GameModel {
     let winningCombos:[(one: Int, two: Int, three: Int)] = [(one:0,two:1,three:2),(one:3,two:4,three:5),(one:6,two:7,three:8),(one:0,two:3,three:6),(one:1,two:4,three:7),(one:2,two:5,three:8),(one:0,two:4,three:8),(one:2,two:4,three:6)]
     
     var boardStatus = NSMutableArray()
-    private let playerOne = Player (name: "Team jon", images: [])
-    private let playerTwo = Player (name: "White walker", images: [])
+    private let playerOne = Player (name: "team jon", images: [])
+    private let playerTwo = Player (name: "white walker", images: [])
     
     var isPlayerOnesTurn: Bool = true
+    var currentGameState: gameState = gameState.gameStateOff
     
     func switchPlayerTurn() {
         self.isPlayerOnesTurn = !self.isPlayerOnesTurn
@@ -47,9 +54,12 @@ class GameModel {
     
     func startGame() {
         self.isPlayerOnesTurn = true
+        self.currentGameState = gameState.gameStateActive
         self.boardStatus = [positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty,positionStatus.empty]
         self.playerOne.imagesArray = ["arya","dany","jonSnow","olenna","tyrion"]
+        self.playerOne.numberOfTurns = 0
         self.playerTwo.imagesArray = ["ramsey","baelish","redLady","nightKing"]
+        self.playerTwo.numberOfTurns = 0
     }
     
     func updateBoardStatus(position:Int, status:positionStatus) -> Bool {
@@ -66,12 +76,13 @@ class GameModel {
     
     func getGameStatus() -> gameStatus {
         // winning combos: 0,1,2 | 3,4,5 | 6,7,8 | 0,3,6 | 1,4,7 | 2,5,8 | 0,4,8 | 2,4,6
-        if self.playerOne.numberOfTurns + self.playerTwo.numberOfTurns < 5 {
+        if self.playerOne.numberOfTurns! + self.playerTwo.numberOfTurns! < 5 {
             return gameStatus.gameOngoing
         }
         for combo in self.winningCombos {
             let result = self.isThereAWinner(one: combo.one, two: combo.two, three: combo.three)
             if result != positionStatus.empty {
+                self.currentGameState = gameState.gameStateLock
                 if result == positionStatus.playerOne {
                     return gameStatus.playerOneWinner
                 } else {
@@ -79,7 +90,8 @@ class GameModel {
                 }
             }
         }
-        if self.playerOne.numberOfTurns + self.playerTwo.numberOfTurns == 9 {
+        if self.playerOne.numberOfTurns! + self.playerTwo.numberOfTurns! == 9 {
+            self.currentGameState = gameState.gameStateLock
             return gameStatus.gameDraw
         } else {
             return gameStatus.gameOngoing
