@@ -10,10 +10,11 @@ import Foundation
 
 class Player {
     let name:String
-    var numberOfTurns:Int = 0
+    var numberOfTurns:Int?
     var imagesArray = NSMutableArray()
     init(name: String, images: NSMutableArray) {
         self.name = name
+        self.numberOfTurns = 0
         self.imagesArray = images
     }
 }

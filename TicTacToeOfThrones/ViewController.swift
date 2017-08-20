@@ -28,7 +28,7 @@ class ViewController: UIViewController {
         self.theGame = GameModel.sharedInstance
         self.theGame?.startGame()
         
-        self.updateGameStatusLabel()
+        self.updateGameStatusLabel(forEvent: "turn")
     }
     
     override func didReceiveMemoryWarning() {
@@ -36,9 +36,21 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func updateGameStatusLabel() {
+    func updateGameStatusLabel(forEvent: String) {
         let current = self.theGame?.whoIsTheCurrentPlayer()
-        self.gameStatusLabel.text = "\(current!.name) turn"
+        switch forEvent {
+        case "turn":
+            self.gameStatusLabel.text = "\(current!.name) turn"
+            break
+        case "winner":
+            self.gameStatusLabel.text = "\(current!.name) wins!"
+            break
+        case "draw":
+            self.gameStatusLabel.text = "game draw!"
+            break
+        default:
+            break
+        }
     }
     
     @IBAction func newGameTapped(_ sender: UIButton) {
@@ -48,30 +60,33 @@ class ViewController: UIViewController {
         for oneImageView in self.tileImageView {
             oneImageView.image = nil
         }
-        self.updateGameStatusLabel()
+        self.updateGameStatusLabel(forEvent: "turn")
     }
     
     func askForGameStatus() {
         // switch turns and update UI
-        self.theGame?.switchPlayerTurn()
-        self.updateGameStatusLabel()
         let theStatus = self.theGame?.getGameStatus()
         switch (theStatus!) {
         case gameStatus.gameDraw:
-            self.gameStatusLabel.text = "Game draw"
+            self.updateGameStatusLabel(forEvent: "draw")
             break
         case gameStatus.gameOngoing:
+            self.theGame?.switchPlayerTurn()
+            self.updateGameStatusLabel(forEvent: "turn")
             break
-        case gameStatus.playerOneWinner:
-            self.gameStatusLabel.text = "Team jon wins!!"
-            break
-        case gameStatus.playerTwoWinner:
-            self.gameStatusLabel.text = "player two wins"
+        case gameStatus.playerOneWinner,
+             gameStatus.playerTwoWinner:
+            self.updateGameStatusLabel(forEvent: "winner")
+            break;
         }
     }
     
     func imageTapped(tapGestureRecognizer: UITapGestureRecognizer)
     {
+        if self.theGame?.currentGameState != gameState.gameStateActive {
+            // show some feedback
+            return
+        }
         let tappedImage = tapGestureRecognizer.view as! UIImageView
         var status: positionStatus
         if self.theGame?.isPlayerOnesTurn == true {
@@ -81,11 +96,11 @@ class ViewController: UIViewController {
         }
         if self.theGame?.updateBoardStatus(position: tappedImage.tag, status: status) == true {
             let current = self.theGame?.whoIsTheCurrentPlayer()
-            current?.numberOfTurns += 1
-            let imageName = current?.imagesArray.object(at: 0) as! String
-            current?.imagesArray.removeObject(at: 0)
+            current?.numberOfTurns! += 1
+            let randomNum:UInt32 = arc4random_uniform(UInt32((current?.imagesArray.count)! - 1))
+            let imageName = current?.imagesArray.object(at: Int(randomNum)) as! String
+            current?.imagesArray.removeObject(at: Int(randomNum))
             tappedImage.image = UIImage(named: imageName)
-            
             // check game status
             self.askForGameStatus()
         }
