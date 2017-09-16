@@ -28,6 +28,28 @@ class ButtonWithCorner : UIButton {
     }
 }
 
+extension UIViewController {
+    func showBannerWithText(text: String) {
+        let height:Double = Double(self.view.frame.size.height)
+        let width:Double = Double(self.view.frame.size.width)
+        let bannerHeight = 60.0
+        let banner: UIView = UIView(frame: CGRect(x: 0.0, y: height, width: width, height: bannerHeight))
+        banner.backgroundColor = UIColor.darkGray
+        let bannerText: UILabel = UILabel(frame: CGRect(x: 0.0, y: 0.0, width: width, height: bannerHeight))
+        bannerText.textAlignment = .center
+        bannerText.text = text
+        bannerText.font = UIFont(name: "AvenirNext-Medium", size: 16.0)
+        bannerText.textColor = UIColor.white
+        banner.addSubview(bannerText)
+        self.view.addSubview(banner)
+        UIView.animate(withDuration: 1.0, animations: {banner.frame = CGRect(x: 0.0, y: height-bannerHeight, width: width, height: bannerHeight)}, completion: { (finished: Bool) in
+            UIView.animate(withDuration: 1.0, delay: 2.0, options: [], animations: {banner.frame = CGRect(x: 0.0, y: height, width: width, height: bannerHeight)}, completion: { (finished: Bool) in
+                banner.removeFromSuperview()
+            })
+        })
+    }
+}
+
 class ViewController: UIViewController {
     @IBOutlet var tileImageView: [UIImageView]!
     @IBOutlet weak var newGameButton: UIButton!
@@ -80,6 +102,7 @@ class ViewController: UIViewController {
         for oneImageView in self.tileImageView {
             oneImageView.image = nil
         }
+        self.showBannerWithText(text: "new game started")
         self.updateGameStatusLabel(forEvent: "turn")
     }
     
