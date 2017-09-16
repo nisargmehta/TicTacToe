@@ -8,6 +8,26 @@
 
 import UIKit
 
+@IBDesignable
+class ButtonWithCorner : UIButton {
+    @IBInspectable var radius: CGFloat = 0 {
+        didSet {
+            layer.cornerRadius = radius
+            layer.masksToBounds = radius > 0
+        }
+    }
+    @IBInspectable var color: UIColor? {
+        didSet {
+            layer.borderColor = color?.cgColor
+        }
+    }
+    @IBInspectable var width: CGFloat = 0 {
+        didSet {
+            layer.borderWidth = width
+        }
+    }
+}
+
 class ViewController: UIViewController {
     @IBOutlet var tileImageView: [UIImageView]!
     @IBOutlet weak var newGameButton: UIButton!
